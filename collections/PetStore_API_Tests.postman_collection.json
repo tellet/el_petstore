@@ -1,0 +1,460 @@
+{
+	"info": {
+		"_postman_id": "2d8343a1-44df-42bf-98e7-55eb5f5a60db",
+		"name": "PetStore_API_Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var schema = JSON.parse(pm.environment.get(\"api_response_schema\"));\r",
+							"pm.test(\"Payload complies to schema\", function () {\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response contains expected message\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.contain(\"logged in user session\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host_url}}/user/login",
+					"host": [
+						"{{host_url}}"
+					],
+					"path": [
+						"user",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create pet",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"Generate data\")\r",
+							"const rand = Math.random().toString(16).substr(2, 8);\r",
+							"pm.environment.set(\"temp_pet_id\", 2);\r",
+							"pm.environment.set(\"temp_pet_name\", \"el-pet-\" + rand);\r",
+							"pm.environment.set(\"temp_pet_category\", \"el_dog_category_\" + rand);\r",
+							"pm.environment.set(\"temp_pet_tag\", \"el_dog_tag_\" + rand);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var schema = JSON.parse(pm.environment.get(\"pet_schema\"));\r",
+							"pm.test(\"Payload complies to schema\", function () {\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response contains expected data\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.id).to.eq(pm.environment.get(\"temp_pet_id\"));\r",
+							"    pm.expect(jsonData.name).to.eq(pm.environment.get(\"temp_pet_name\"));\r",
+							"    pm.expect(jsonData.category.name).to.eq(pm.environment.get(\"temp_pet_category\"));\r",
+							"    pm.expect(jsonData.tags[0].name).to.eq(pm.environment.get(\"temp_pet_tag\"));\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": \"{{temp_pet_id}}\",\r\n    \"category\": {\r\n        \"name\": \"{{temp_pet_category}}\"\r\n    },\r\n    \"name\": \"{{temp_pet_name}}\",\r\n    \"photoUrls\": [\r\n        \"string\"\r\n    ],\r\n    \"tags\": [\r\n        {\r\n            \"name\": \"{{temp_pet_tag}}\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host_url}}/pet",
+					"host": [
+						"{{host_url}}"
+					],
+					"path": [
+						"pet"
+					]
+				},
+				"description": "Given: A name, an URL, a category and a tag\n\nWhen: client sends POST request to create a pet with the given values\n\nThen: client gets an OK response with data as provided"
+			},
+			"response": []
+		},
+		{
+			"name": "Create order",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var schema = JSON.parse(pm.environment.get(\"order_schema\"));\r",
+							"pm.test(\"Payload complies to schema\", function () {\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response contains expected data\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.petId, \"petId is incorrect\").to.eq(1);\r",
+							"    pm.expect(jsonData.quantity, \"quantity is incorrect\").to.eq(1);\r",
+							"    pm.expect(jsonData.status, \"status is incorrect\").to.eq(\"placed\");\r",
+							"    pm.expect(jsonData.complete, \"complete is incorrect\").to.eq(false);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"petId\": 1,\r\n  \"quantity\": 1,\r\n  \"shipDate\": \"2022-03-10T10:53:16.406Z\",\r\n  \"status\": \"placed\",\r\n  \"complete\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host_url}}/store/order",
+					"host": [
+						"{{host_url}}"
+					],
+					"path": [
+						"store",
+						"order"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find pet by Id: unknown id",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var schema = JSON.parse(pm.environment.get(\"api_response_schema\"));\r",
+							"pm.test(\"Payload complies to schema\", function () {\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"pm.test(\"Status code is 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							"pm.test(\"Error message is as expected\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eq(\"Pet not found\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host_url}}/pet/121",
+					"host": [
+						"{{host_url}}"
+					],
+					"path": [
+						"pet",
+						"121"
+					]
+				},
+				"description": "Given: a pet id that doesn't exist in a system\n\nWhen: client sends a GET request in attempt to fetch the details\n\nThen: client gets an error message"
+			},
+			"response": []
+		},
+		{
+			"name": "Create pet: missing required field \"name\"",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var schema = JSON.parse(pm.environment.get(\"api_response_schema\"));\r",
+							"pm.test(\"Payload complies to schema\", function () {\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"pm.test(\"Error message is as expected\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eq(\"Missing required field: name\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"photoUrls\": [\r\n        \"string\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host_url}}/pet",
+					"host": [
+						"{{host_url}}"
+					],
+					"path": [
+						"pet"
+					]
+				},
+				"description": "Given: a request body with 1 missing required field (name)\n\nWhen: client sends a POST request with the body in attempt to create a pet\n\nThen: client gets an error message"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete order: txt id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var schema = JSON.parse(pm.environment.get(\"api_response_schema\"));\r",
+							"pm.test(\"Payload complies to schema\", function () {\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"pm.test(\"Error message is as expected\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.message).to.eq(\"java.lang.NumberFormatException: For input string: \\\"something\\\"\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{host_url}}/store/order/something",
+					"host": [
+						"{{host_url}}"
+					],
+					"path": [
+						"store",
+						"order",
+						"something"
+					]
+				},
+				"description": "Given: Generate random text\n\nWhen: client sends DELETE request to delete order and provides text order id\n\nThen: client gets an error response with appropriate message"
+			},
+			"response": []
+		},
+		{
+			"name": "Find pet by Id: complex example",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"console.log(\"Generate data\")\r",
+							"const rand = Math.random().toString(16).substr(2, 8);\r",
+							"pm.environment.set(\"temp_pet_id\", 1);\r",
+							"pm.environment.set(\"temp_pet_name\", \"el-pet-\" + rand);\r",
+							"pm.environment.set(\"temp_pet_category\", \"el_dog_category_\" + rand);\r",
+							"pm.environment.set(\"temp_pet_tag\", \"el_dog_tag_\" + rand);\r",
+							"\r",
+							"pm.sendRequest({\r",
+							"    url: pm.environment.get(\"host_url\") + \"/pet\",\r",
+							"    method: \"POST\",\r",
+							"    header: {\r",
+							"        \"content-type\": \"application/json\",\r",
+							"        \"accept\": \"application/json\"\r",
+							"    },\r",
+							"    body: {\r",
+							"        mode: 'raw',\r",
+							"        raw: JSON.stringify(\r",
+							"            {\r",
+							"                \"id\": 1,\r",
+							"                \"name\": \"el-pet-\" + rand,\r",
+							"                \"category\": {\r",
+							"                    \"name\": \"el_dog_category_\" + rand\r",
+							"                },\r",
+							"                \"tags\": [\r",
+							"                    {\r",
+							"                        \"name\": \"el_dog_tag_\" + rand\r",
+							"                    }\r",
+							"                ],\r",
+							"                \"photoUrls\": [\r",
+							"                    \"https://google.com\"\r",
+							"                ]\r",
+							"            }            \r",
+							"        )\r",
+							"    }\r",
+							"}, function (err, res) {\r",
+							"    if (err) {\r",
+							"        console.log(\"ERROR: there was an error in pre-request script: \" + err.json())\r",
+							"    }\r",
+							"    console.log(JSON.stringify(res.json()))\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"var schema = JSON.parse(pm.environment.get(\"pet_schema\"));\r",
+							"pm.test(\"Payload complies to schema\", function () {\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response contains expected data\", function () {\r",
+							"    pm.expect(jsonData.name, \"name is incorrect\").to.eq(pm.environment.get(\"temp_pet_name\"));\r",
+							"    pm.expect(jsonData.id, \"id is incorrect\").to.eq(pm.environment.get(\"temp_pet_id\"));\r",
+							"    pm.expect(jsonData.category.name, \"category.name is incorrect\").to.eq(pm.environment.get(\"temp_pet_category\"));\r",
+							"    pm.expect(jsonData.tags[0].name, \"tags[0].name is incorrect\").to.eq(pm.environment.get(\"temp_pet_tag\"));\r",
+							"});\r",
+							"pm.sendRequest({\r",
+							"    url: pm.environment.get(\"host_url\") + \"/pet/\" + pm.environment.get(\"temp_pet_id\"),\r",
+							"    method: \"DELETE\",\r",
+							"    header: {\r",
+							"        \"content-type\": \"application/json\",\r",
+							"        \"accept\": \"application/json\"\r",
+							"    },\r",
+							"    body: {}\r",
+							"}, function (err, res) {\r",
+							"    pm.environment.unset(\"temp_pet_id\");\r",
+							"    pm.environment.unset(\"temp_pet_name\");\r",
+							"    pm.environment.unset(\"temp_pet_category\");\r",
+							"    pm.environment.unset(\"temp_pet_tag\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host_url}}/pet/{{temp_pet_id}}",
+					"host": [
+						"{{host_url}}"
+					],
+					"path": [
+						"pet",
+						"{{temp_pet_id}}"
+					]
+				},
+				"description": "Given: a pet with id: 1\n\nWhen: client sends a GET request to get the details of the given pet\n\nThen: client gets a response with expected data as expected."
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "special-key",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "api_key",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
